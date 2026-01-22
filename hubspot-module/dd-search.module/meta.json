@@ -1,0 +1,13 @@
+{
+  "label": "Daily Discipline Search",
+  "host_template_types": ["PAGE", "BLOG_POST", "BLOG_LISTING"],
+  "icon": "../../images/search-icon.svg",
+  "is_available_for_new_content": true,
+  "module_id": 108516123456,
+  "path": "@hubspot/Leap/modules/dd-search.module",
+  "smart_type": "NOT_SMART",
+  "css_assets": [],
+  "external_js": [],
+  "js_assets": [],
+  "content_tags": []
+}

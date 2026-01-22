@@ -1,0 +1,23 @@
+{
+  "name": "dd-search",
+  "version": "1.0.0",
+  "description": "Daily Discipline LLM-powered semantic search",
+  "type": "module",
+  "scripts": {
+    "import": "node import-archive.js",
+    "sync": "node sync-circle.js",
+    "dev": "node search-api.js",
+    "widget": "node widget/test-server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "@anthropic-ai/sdk": "^0.71.0",
+    "openai": "^4.28.0",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0"
+  }
+}
