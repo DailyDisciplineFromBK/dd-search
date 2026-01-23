@@ -23,6 +23,61 @@
     }
   });
 
+  // Pool of 30 recommended prompts for rotation
+  const PROMPT_POOL = [
+    "How do I create my own energy?",
+    "What does Daily Discipline say about confidence?",
+    "How do I stay consistent when motivation fades?",
+    "What's the difference between discipline and motivation?",
+    "How do I overcome procrastination?",
+    "What is E+R=O and how do I use it?",
+    "How do I build better habits?",
+    "What does BK say about leadership?",
+    "How do I handle failure and setbacks?",
+    "What is the discipline mindset?",
+    "How do I stay focused on my goals?",
+    "What does Daily Discipline teach about accountability?",
+    "How do I deal with distractions?",
+    "What is the difference between effort and results?",
+    "How do I build mental toughness?",
+    "What does BK say about taking ownership?",
+    "How do I create a morning routine?",
+    "What is the role of consistency in success?",
+    "How do I stop making excuses?",
+    "What does Daily Discipline say about fear?",
+    "How do I make better decisions?",
+    "What is the importance of daily practice?",
+    "How do I develop self-discipline?",
+    "What does BK teach about character?",
+    "How do I overcome negative thinking?",
+    "What is the power of response?",
+    "How do I build confidence through action?",
+    "What does Daily Discipline say about trust?",
+    "How do I handle pressure and stress?",
+    "What is the difference between activity and productivity?"
+  ];
+
+  // Randomly select 4 prompts for display
+  function getRandomPrompts(pool, count = 4) {
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  }
+
+  // Rotate prompts on page load if prompt chips exist
+  const promptsContainer = document.querySelector('.dd-example-prompts');
+  if (promptsContainer) {
+    const selectedPrompts = getRandomPrompts(PROMPT_POOL);
+    const existingChips = promptsContainer.querySelectorAll('.dd-prompt-chip');
+
+    // Update existing chips with random prompts
+    existingChips.forEach((chip, index) => {
+      if (selectedPrompts[index]) {
+        chip.textContent = selectedPrompts[index];
+        chip.dataset.prompt = selectedPrompts[index];
+      }
+    });
+  }
+
   // Example prompt chip handlers
   const promptChips = document.querySelectorAll('.dd-prompt-chip');
   promptChips.forEach(chip => {
@@ -242,6 +297,8 @@
         break;
 
       case 'answer_complete':
+        // Add disclaimer class to answer
+        answerDiv.classList.add('has-disclaimer');
         // Only show this status if not celebratory
         if (!hasCelebratoryIntent()) {
           showStatus('Finding the best posts...', 'loading');

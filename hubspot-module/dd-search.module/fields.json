@@ -212,7 +212,7 @@
         "locked": false,
         "type": "color",
         "default": {
-          "color": "#f4c84c",
+          "color": "#f5da46",
           "opacity": 100
         }
       },
