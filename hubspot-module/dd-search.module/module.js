@@ -308,10 +308,16 @@
     } else if (intent.intentType === 'hiring') {
       formHTML += `
         <div style="margin-bottom: 10px;">
-          <label for="name-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Name:</label>
-          <input type="text" id="name-input" name="firstname" required
+          <label for="firstname-input" style="display: block; margin-bottom: 5px; font-weight: bold;">First Name:</label>
+          <input type="text" id="firstname-input" name="firstname" required
                  style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
-                 placeholder="Your name">
+                 placeholder="First name">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="lastname-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Last Name:</label>
+          <input type="text" id="lastname-input" name="lastname" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="Last name">
         </div>
         <div style="margin-bottom: 10px;">
           <label for="email-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
@@ -320,10 +326,58 @@
                  placeholder="your@email.com">
         </div>
         <div style="margin-bottom: 10px;">
-          <label for="message-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
-          <textarea id="message-input" name="message" required rows="4"
+          <label for="phone-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone:</label>
+          <input type="tel" id="phone-input" name="phone" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="(555) 555-5555">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="company-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Company/Organization:</label>
+          <input type="text" id="company-input" name="company" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="Your company">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="jobtitle-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Job Title:</label>
+          <input type="text" id="jobtitle-input" name="jobtitle" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="Your title">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="keynote_topic-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Keynote Topic of Interest:</label>
+          <input type="text" id="keynote_topic-input" name="keynote_topic" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="What topic interests you?">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="product-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Product/Event Type:</label>
+          <select id="product-input" name="product" required
+                  style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <option value="">Select one...</option>
+            <option value="Keynote">Keynote Speaking</option>
+            <option value="Workshop">Workshop/Training</option>
+            <option value="Consulting">Consulting</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="hs_persona-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Event Type:</label>
+          <select id="hs_persona-input" name="hs_persona" required
+                  style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <option value="">Select one...</option>
+            <option value="Corporate Event">Corporate Event</option>
+            <option value="Conference">Conference</option>
+            <option value="Sports Team">Sports Team</option>
+            <option value="Educational Institution">Educational Institution</option>
+            <option value="Non-Profit">Non-Profit</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="message-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Tell us about your event:</label>
+          <textarea id="message-input" name="message" rows="4"
                     style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
-                    placeholder="Tell us about your event..."></textarea>
+                    placeholder="Event details, audience size, date, location, etc."></textarea>
         </div>
       `;
     } else if (intent.intentType === 'contactUs') {
