@@ -1,0 +1,245 @@
+[
+  {
+    "id": "header_content",
+    "name": "header_content",
+    "label": "Header Content",
+    "required": false,
+    "locked": false,
+    "type": "group",
+    "children": [
+      {
+        "id": "show_eyebrow",
+        "name": "show_eyebrow",
+        "label": "Show eyebrow badge",
+        "required": false,
+        "locked": false,
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "id": "eyebrow_text",
+        "name": "eyebrow_text",
+        "label": "Eyebrow Text",
+        "required": false,
+        "locked": false,
+        "type": "text",
+        "default": "Learn from 2,100+ Daily Discipline entries"
+      },
+      {
+        "id": "headline_prefix",
+        "name": "headline_prefix",
+        "label": "Headline - Before Highlight",
+        "required": false,
+        "locked": false,
+        "type": "text",
+        "default": "Ask"
+      },
+      {
+        "id": "headline_highlight",
+        "name": "headline_highlight",
+        "label": "Headline - Highlighted Word",
+        "required": false,
+        "locked": false,
+        "type": "text",
+        "default": "anything"
+      },
+      {
+        "id": "headline_suffix",
+        "name": "headline_suffix",
+        "label": "Headline - After Highlight",
+        "required": false,
+        "locked": false,
+        "type": "text",
+        "default": "about discipline, habits, and mindset"
+      },
+      {
+        "id": "highlight_style",
+        "name": "highlight_style",
+        "label": "Highlight Style",
+        "required": false,
+        "locked": false,
+        "type": "choice",
+        "choices": [
+          ["solid", "Solid background pill"],
+          ["underline", "Underline"],
+          ["outline", "Outline"]
+        ],
+        "default": "solid"
+      },
+      {
+        "id": "subheadline",
+        "name": "subheadline",
+        "label": "Subheadline / Description",
+        "required": false,
+        "locked": false,
+        "type": "richtext",
+        "default": "Get AI-powered answers synthesized from the Daily Discipline archive, with direct references to BK's original posts."
+      }
+    ]
+  },
+  {
+    "id": "search_input",
+    "name": "search_input",
+    "label": "Search Input",
+    "required": false,
+    "locked": false,
+    "type": "group",
+    "children": [
+      {
+        "id": "search_placeholder",
+        "name": "search_placeholder",
+        "label": "Search Placeholder Text",
+        "required": false,
+        "locked": false,
+        "type": "text",
+        "default": "Ask anything about discipline, habits, mindset..."
+      },
+      {
+        "id": "submit_button_icon",
+        "name": "submit_button_icon",
+        "label": "Submit Button Icon",
+        "required": false,
+        "locked": false,
+        "type": "choice",
+        "choices": [
+          ["arrow", "Arrow"],
+          ["send", "Send"],
+          ["search", "Search"]
+        ],
+        "default": "send"
+      },
+      {
+        "id": "submit_button_label",
+        "name": "submit_button_label",
+        "label": "Submit Button Accessible Label",
+        "required": false,
+        "locked": false,
+        "type": "text",
+        "default": "Search Daily Discipline"
+      }
+    ]
+  },
+  {
+    "id": "example_prompts_section",
+    "name": "example_prompts_section",
+    "label": "Example Prompts",
+    "required": false,
+    "locked": false,
+    "type": "group",
+    "children": [
+      {
+        "id": "enable_example_prompts",
+        "name": "enable_example_prompts",
+        "label": "Enable Example Prompts",
+        "required": false,
+        "locked": false,
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "id": "example_prompts",
+        "name": "example_prompts",
+        "label": "Example Prompts",
+        "required": false,
+        "locked": false,
+        "type": "group",
+        "occurrence": {
+          "min": 0,
+          "max": 8,
+          "default": 4
+        },
+        "children": [
+          {
+            "id": "prompt_text",
+            "name": "prompt_text",
+            "label": "Prompt Text",
+            "required": false,
+            "locked": false,
+            "type": "text",
+            "default": ""
+          }
+        ],
+        "default": [
+          {"prompt_text": "How do I create my own energy?"},
+          {"prompt_text": "What does Daily Discipline say about confidence?"},
+          {"prompt_text": "How do I stay consistent when motivation fades?"},
+          {"prompt_text": "What's the difference between discipline and motivation?"}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "api_config",
+    "name": "api_config",
+    "label": "API Configuration",
+    "required": false,
+    "locked": false,
+    "type": "group",
+    "children": [
+      {
+        "id": "api_base_url",
+        "name": "api_base_url",
+        "label": "API Base URL",
+        "required": false,
+        "locked": false,
+        "type": "text",
+        "default": "https://dd-search-production.up.railway.app"
+      },
+      {
+        "id": "search_endpoint",
+        "name": "search_endpoint",
+        "label": "Search Endpoint",
+        "required": false,
+        "locked": false,
+        "type": "text",
+        "default": "/search"
+      }
+    ]
+  },
+  {
+    "id": "styling",
+    "name": "styling",
+    "label": "Styling",
+    "required": false,
+    "locked": false,
+    "type": "group",
+    "children": [
+      {
+        "id": "accent_color",
+        "name": "accent_color",
+        "label": "Accent Color (highlight, buttons)",
+        "required": false,
+        "locked": false,
+        "type": "color",
+        "default": {
+          "color": "#f4c84c",
+          "opacity": 100
+        }
+      },
+      {
+        "id": "background_color",
+        "name": "background_color",
+        "label": "Background Color",
+        "required": false,
+        "locked": false,
+        "type": "color",
+        "default": {
+          "color": "#0f0f0f",
+          "opacity": 100
+        }
+      },
+      {
+        "id": "text_color",
+        "name": "text_color",
+        "label": "Text Color",
+        "required": false,
+        "locked": false,
+        "type": "color",
+        "default": {
+          "color": "#ffffff",
+          "opacity": 100
+        }
+      }
+    ]
+  }
+]
