@@ -1,25 +1,95 @@
-<div id="dd-search-widget">
-  <div class="search-container">
-    <h2>Search Daily Discipline Archive</h2>
-    <p class="search-subtitle">Search 2,100+ posts on discipline, performance, and personal growth</p>
+<div id="dd-search-widget"
+     data-api-base-url="{{ module.api_config.api_base_url }}"
+     data-search-endpoint="{{ module.api_config.search_endpoint }}"
+     data-submit-icon="{{ module.search_input.submit_button_icon }}"
+     style="--dd-accent: {{ module.styling.accent_color.color }}; --dd-bg: {{ module.styling.background_color.color }}; --dd-text: {{ module.styling.text_color.color }};">
 
-    <div class="search-box">
+  <!-- Hero Section -->
+  <div class="dd-search-hero">
+    {% if module.header_content.show_eyebrow %}
+    <div class="dd-eyebrow">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+        <path d="M2 17l10 5 10-5"></path>
+        <path d="M2 12l10 5 10-5"></path>
+      </svg>
+      {{ module.header_content.eyebrow_text }}
+    </div>
+    {% endif %}
+
+    <h1 class="dd-headline">
+      <span class="dd-headline-prefix">{{ module.header_content.headline_prefix }}</span>
+      <span class="dd-headline-highlight dd-highlight-{{ module.header_content.highlight_style }}">{{ module.header_content.headline_highlight }}</span>
+      <span class="dd-headline-suffix">{{ module.header_content.headline_suffix }}</span>
+    </h1>
+
+    <div class="dd-subheadline">
+      {{ module.header_content.subheadline }}
+    </div>
+  </div>
+
+  <!-- Search Input -->
+  <div class="dd-search-container">
+    <div class="dd-search-box">
+      <svg class="dd-search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
       <input
         type="text"
         id="search-input"
-        placeholder="e.g., how to build discipline, overcoming procrastination, morning routines..."
-        aria-label="Search query"
+        placeholder="{{ module.search_input.search_placeholder }}"
+        aria-label="{{ module.search_input.search_placeholder }}"
       >
-      <button id="search-button" aria-label="Search">
+      <button id="search-button" aria-label="{{ module.search_input.submit_button_label }}">
+        {% if module.search_input.submit_button_icon == 'arrow' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+        {% elif module.search_input.submit_button_icon == 'send' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+        {% else %}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.35-4.35"></path>
         </svg>
+        {% endif %}
       </button>
     </div>
 
-    <div id="search-status" class="search-status" role="status" aria-live="polite"></div>
+    <div id="search-status" class="dd-search-status" role="status" aria-live="polite"></div>
   </div>
 
-  <div id="search-results" class="search-results"></div>
+  <!-- Example Prompts -->
+  {% if module.example_prompts_section.enable_example_prompts %}
+  <div class="dd-example-prompts">
+    {% for prompt in module.example_prompts_section.example_prompts %}
+    {% if prompt.prompt_text %}
+    <button class="dd-prompt-chip" data-prompt="{{ prompt.prompt_text }}">
+      {{ prompt.prompt_text }}
+    </button>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Results Area -->
+  <div id="search-results" class="dd-search-results">
+    <!-- Intent Container (forms, CTAs) -->
+    <div id="intent-container" class="dd-intent-container"></div>
+
+    <!-- Answer Container (BK's response) -->
+    <div id="answer-container" class="dd-answer-container">
+      <div id="answer-div" class="dd-answer-content"></div>
+    </div>
+
+    <!-- Posts Container -->
+    <div id="posts-container" class="dd-posts-container">
+      <div id="posts-div" class="dd-posts-content"></div>
+    </div>
+  </div>
 </div>

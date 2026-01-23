@@ -1,11 +1,15 @@
 (function() {
-  // Configuration - Production API
-  const API_BASE_URL = 'https://dd-search-production.up.railway.app';
+  // Configuration - Get API base URL from module data attributes
+  const widget = document.getElementById('dd-search-widget');
+  const API_BASE_URL = widget.dataset.apiBaseUrl || 'https://dd-search-production.up.railway.app';
+  const SEARCH_ENDPOINT = widget.dataset.searchEndpoint || '/search';
+
+  console.log('Widget initialized with API:', API_BASE_URL);
 
   // DOM elements
   const searchInput = document.getElementById('search-input');
   const searchButton = document.getElementById('search-button');
-  const searchStatus = document.getElementById('search-status');
+  const searchStatus = document.querySelector('.dd-search-status');
   const searchResults = document.getElementById('search-results');
 
   // State
@@ -17,6 +21,16 @@
     if (e.key === 'Enter') {
       handleSearch();
     }
+  });
+
+  // Example prompt chip handlers
+  const promptChips = document.querySelectorAll('.dd-prompt-chip');
+  promptChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const prompt = chip.dataset.prompt;
+      searchInput.value = prompt;
+      handleSearch();
+    });
   });
 
   // Handle search with streaming for real-time results
@@ -62,14 +76,12 @@
         // FINAL SAFETY NET: Always show SOMETHING to the user
         showStatus('', '');
         searchResults.innerHTML = `
-          <div class="direct-answer">
-            <div class="answer-label">ERROR</div>
-            <div class="answer-text" style="color: #c00;">
+          <div class="dd-answer-container">
+            <div class="dd-answer-content" style="color: #ff6b6b;">
               Search failed. Please try again or rephrase your question.
             </div>
           </div>
         `;
-        searchResults.classList.add('visible');
       }
     } finally {
       isSearching = false;
@@ -82,23 +94,20 @@
     return new Promise((resolve, reject) => {
       // Prepare search results container with separate intent and answer sections
       searchResults.innerHTML = `
-        <div id="intent-container" style="display: none;"></div>
-        <div id="answer-container" class="direct-answer">
-          <div class="answer-label">FROM BK</div>
-          <div class="answer-text" id="streaming-answer"></div>
+        <div id="intent-container" class="dd-intent-container"></div>
+        <div id="answer-container" class="dd-answer-container">
+          <div id="answer-div" class="dd-answer-content"></div>
         </div>
-        <div id="posts-container">
-          <div class="results-header">Related Posts</div>
-          <div class="results-list" id="streaming-posts"></div>
+        <div id="posts-container" class="dd-posts-container">
+          <div id="posts-div" class="dd-posts-content"></div>
         </div>
       `;
-      searchResults.classList.add('visible');
 
       const intentContainer = document.getElementById('intent-container');
       const answerContainer = document.getElementById('answer-container');
       const postsContainer = document.getElementById('posts-container');
-      const answerDiv = document.getElementById('streaming-answer');
-      const postsDiv = document.getElementById('streaming-posts');
+      const answerDiv = document.getElementById('answer-div');
+      const postsDiv = document.getElementById('posts-div');
 
       // Track if we have a celebratory intent (forms/CTAs)
       let hasCelebratoryIntent = false;
@@ -563,15 +572,13 @@
           <p>Try a different search query</p>
         </div>
       `;
-      searchResults.classList.add('visible');
       return;
     }
 
     // Direct answer section (BK's voice)
     const answerHTML = data.answer ? `
-      <div class="direct-answer">
-        <div class="answer-label">FROM BK</div>
-        <div class="answer-text">${escapeHtml(data.answer)}</div>
+      <div class="dd-answer-container">
+        <div class="dd-answer-content">${escapeHtml(data.answer)}</div>
       </div>
     ` : '';
 
@@ -608,30 +615,23 @@
 
     searchResults.innerHTML = `
       ${answerHTML}
-      <div class="results-header">Related Posts</div>
-      <div class="results-list">
-        ${resultsHTML}
+      <div class="dd-posts-container">
+        <div class="dd-posts-content">
+          ${resultsHTML}
+        </div>
       </div>
     `;
-
-    searchResults.classList.add('visible');
   }
 
   // Show status message
   function showStatus(message, type = '') {
     searchStatus.textContent = message;
-    searchStatus.className = `search-status ${type}`;
-
-    if (type === 'loading') {
-      const spinner = document.createElement('span');
-      spinner.className = 'loading-spinner';
-      searchStatus.prepend(spinner);
-    }
+    searchStatus.className = `dd-search-status ${type}`;
   }
 
   // Hide results
   function hideResults() {
-    searchResults.classList.remove('visible');
+    searchResults.innerHTML = '';
   }
 
   // Escape HTML to prevent XSS
