@@ -30,6 +30,8 @@ export async function submitHubSpotForm(formId, fields, context = {}) {
   };
 
   try {
+    console.log('📝 Submitting to HubSpot:', { formId, fields: Object.keys(fields) });
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -38,17 +40,30 @@ export async function submitHubSpotForm(formId, fields, context = {}) {
       body: JSON.stringify(payload)
     });
 
+    const responseText = await response.text();
+    console.log('HubSpot response status:', response.status);
+    console.log('HubSpot response body:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HubSpot API error: ${response.status} - ${errorText}`);
+      throw new Error(`HubSpot API error: ${response.status} - ${responseText}`);
     }
 
-    const data = await response.json();
-    console.log('✅ HubSpot form submitted:', formId);
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      // Response might not be JSON
+      data = { message: responseText };
+    }
+
+    console.log('✅ HubSpot form submitted successfully:', formId);
     return { success: true, data };
 
   } catch (error) {
     console.error('❌ HubSpot form submission failed:', error);
+    console.error('Form ID:', formId);
+    console.error('Fields:', fields);
+    console.error('Payload:', JSON.stringify(payload, null, 2));
     return { success: false, error: error.message };
   }
 }

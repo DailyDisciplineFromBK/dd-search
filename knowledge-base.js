@@ -76,15 +76,57 @@ export const KNOWLEDGE_BASE = {
         /buy.*journal/i,
         /purchase.*journal/i,
         /daily discipline journal/i,
+        /where.*journal/i,
+        /get.*journal/i
+      ],
+      action: 'redirect',
+      url: 'https://store.tbriankight.com/products/daily-discipline-journal',
+      response: 'The Daily Discipline Journal is available at the store for $25. It\'s built to help you track your daily discipline practice.',
+      celebratory: true,
+      productName: 'Daily Discipline Journal'
+    },
+
+    productsShirts: {
+      patterns: [
         /t-shirt/i,
-        /wristband/i,
+        /tshirt/i,
+        /shirt/i,
+        /dmgb.*shirt/i,
+        /doesn.*matter.*better/i
+      ],
+      action: 'redirect',
+      url: 'https://store.tbriankight.com/collections/t-shirts',
+      response: 'Check out the t-shirt collection! DMGB (Doesn\'t Matter, Get Better) shirts, DIGNVS gear, and more.',
+      celebratory: true,
+      productName: 'T-Shirts'
+    },
+
+    productsPosters: {
+      patterns: [
+        /poster/i,
+        /e\+r\=o.*poster/i,
+        /wall art/i
+      ],
+      action: 'redirect',
+      url: 'https://store.tbriankight.com/collections/posters',
+      response: 'E+R=O posters available - great for keeping discipline visible in your space.',
+      celebratory: true,
+      productName: 'Posters'
+    },
+
+    productsGeneral: {
+      patterns: [
         /merch/i,
         /store/i,
-        /shop/i
+        /shop/i,
+        /products/i,
+        /buy.*gear/i
       ],
       action: 'redirect',
       url: 'https://store.tbriankight.com/',
-      response: 'You can find the Daily Discipline Journal, t-shirts, wristbands, and other products at the store: https://store.tbriankight.com/'
+      response: 'The store has Daily Discipline Journals, DMGB t-shirts, E+R=O posters, and more gear to support your discipline practice.',
+      celebratory: true,
+      productName: 'Store'
     },
 
     orderStatus: {
@@ -201,10 +243,28 @@ export function detectIntent(query) {
     }
   }
 
-  // Check for products
+  // Check for products (specific first, then general)
   for (const pattern of KNOWLEDGE_BASE.intents.products.patterns) {
     if (pattern.test(lowerQuery)) {
       return { type: 'products', ...KNOWLEDGE_BASE.intents.products };
+    }
+  }
+
+  for (const pattern of KNOWLEDGE_BASE.intents.productsShirts.patterns) {
+    if (pattern.test(lowerQuery)) {
+      return { type: 'productsShirts', ...KNOWLEDGE_BASE.intents.productsShirts };
+    }
+  }
+
+  for (const pattern of KNOWLEDGE_BASE.intents.productsPosters.patterns) {
+    if (pattern.test(lowerQuery)) {
+      return { type: 'productsPosters', ...KNOWLEDGE_BASE.intents.productsPosters };
+    }
+  }
+
+  for (const pattern of KNOWLEDGE_BASE.intents.productsGeneral.patterns) {
+    if (pattern.test(lowerQuery)) {
+      return { type: 'productsGeneral', ...KNOWLEDGE_BASE.intents.productsGeneral };
     }
   }
 
@@ -295,9 +355,9 @@ export function buildAnswerPrompt(query, posts, intent, restrictions, knowledgeF
     contextAdditions += `\n\nIMPORTANT FACT: ${knowledgeFact.info}`;
   }
 
-  // Add intent information if applicable
-  if (intent) {
-    contextAdditions += `\n\nUSER INTENT: The user appears to want to ${intent.type}. ${intent.response}`;
+  // Add intent information if applicable (but not the response text - that's shown separately)
+  if (intent && intent.celebratory) {
+    contextAdditions += `\n\nNOTE: The user's intent (${intent.type}) has already been addressed with a form/link. Your answer should be SHORT (1-2 sentences) and SUPPORTIVE. DO NOT repeat URLs or instructions that are already shown to the user.`;
   }
 
   const formattedPosts = posts.slice(0, 10)
@@ -310,5 +370,5 @@ ${contextAdditions}
 
 Posts: ${formattedPosts}
 
-Be direct, actionable, simple. Tell them what to DO. Use short sentences.`;
+Be direct, actionable, simple. Tell them what to DO. Use short sentences. DO NOT make up URLs or guess at web addresses.`;
 }

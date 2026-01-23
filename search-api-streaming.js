@@ -226,19 +226,32 @@ app.post('/search/stream', async (req, res) => {
     // Build answer prompt with knowledge base enhancements
     const answerPrompt = buildAnswerPrompt(query, posts, intent, restrictions, knowledgeFact);
 
-    // Stream answer from Claude
-    const answerStream = await anthropic.messages.stream({
-      model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 400,
-      messages: [{ role: 'user', content: answerPrompt }],
-    });
-
     let fullAnswer = '';
-    for await (const chunk of answerStream) {
-      if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-        const text = chunk.delta.text;
-        fullAnswer += text;
-        sendEvent('answer_chunk', { text });
+    try {
+      // Stream answer from Claude
+      const answerStream = await anthropic.messages.stream({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: answerPrompt }],
+      });
+
+      for await (const chunk of answerStream) {
+        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+          const text = chunk.delta.text;
+          fullAnswer += text;
+          sendEvent('answer_chunk', { text });
+        }
+      }
+    } catch (anthropicError) {
+      // Handle Claude content policy violations
+      console.error('Claude API error:', anthropicError);
+
+      if (anthropicError.message && anthropicError.message.includes('content_policy')) {
+        fullAnswer = 'Your search appears to violate our use-policy. Please rephrase your question and try again.';
+        sendEvent('answer_chunk', { text: fullAnswer });
+      } else {
+        // Re-throw if it's not a content policy issue
+        throw anthropicError;
       }
     }
 
@@ -294,7 +307,22 @@ JSON only:
 
   } catch (err) {
     console.error('❌ Search error:', err);
-    sendEvent('error', { message: err.message });
+
+    // Check if this is a content policy violation
+    const isContentPolicy = err.message && (
+      err.message.includes('content_policy') ||
+      err.message.includes('harmful') ||
+      err.message.includes('safety') ||
+      err.type === 'invalid_request_error'
+    );
+
+    if (isContentPolicy) {
+      sendEvent('answer_chunk', { text: 'Your search appears to violate our use-policy. Please rephrase your question and try again.' });
+      sendEvent('complete', { searchTime: Date.now() - startTime });
+    } else {
+      sendEvent('error', { message: 'Search failed. Please try again.' });
+    }
+
     res.end();
   }
 });
