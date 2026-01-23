@@ -19,7 +19,7 @@
     }
   });
 
-  // Handle search - Using non-streaming for now
+  // Handle search with streaming for real-time results
   async function handleSearch() {
     const query = searchInput.value.trim();
 
@@ -38,20 +38,27 @@
       hideResults();
 
       // Show initial status
-      showStatus('Searching...', 'loading');
+      showStatus('Starting search...', 'loading');
 
-      console.log('Making request to:', API_BASE_URL + '/search');
+      console.log('Making streaming request to:', API_BASE_URL + '/search/stream');
       console.log('Query:', query);
 
-      // Use standard endpoint for reliability
-      await searchWithoutStreaming(query);
+      // Use streaming for real-time results
+      await searchWithStreaming(query);
 
     } catch (error) {
       console.error('Search error details:', error);
       console.error('Error name:', error.name);
       console.error('Error message:', error.message);
       console.error('Stack:', error.stack);
-      showStatus('Search failed: ' + error.message, 'error');
+
+      // Fallback to non-streaming if streaming fails
+      console.log('Streaming failed, falling back to standard search...');
+      try {
+        await searchWithoutStreaming(query);
+      } catch (fallbackError) {
+        showStatus('Search failed: ' + fallbackError.message, 'error');
+      }
     } finally {
       isSearching = false;
       searchButton.disabled = false;
