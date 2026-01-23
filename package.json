@@ -1,12 +1,15 @@
 {
   "name": "dd-search",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "description": "Daily Discipline LLM-powered semantic search",
   "type": "module",
   "scripts": {
+    "start": "node search-api-streaming.js",
+    "start:optimized": "node search-api-optimized.js",
+    "start:original": "node search-api.js",
+    "dev": "node search-api-streaming.js",
     "import": "node import-archive.js",
     "sync": "node sync-circle.js",
-    "dev": "node search-api.js",
     "widget": "node widget/test-server.js"
   },
   "dependencies": {
