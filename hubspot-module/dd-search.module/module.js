@@ -57,7 +57,19 @@
       try {
         await searchWithoutStreaming(query);
       } catch (fallbackError) {
-        showStatus('Search failed: ' + fallbackError.message, 'error');
+        console.error('Fallback also failed:', fallbackError);
+
+        // FINAL SAFETY NET: Always show SOMETHING to the user
+        showStatus('', '');
+        searchResults.innerHTML = `
+          <div class="direct-answer">
+            <div class="answer-label">ERROR</div>
+            <div class="answer-text" style="color: #c00;">
+              Search failed. Please try again or rephrase your question.
+            </div>
+          </div>
+        `;
+        searchResults.classList.add('visible');
       }
     } finally {
       isSearching = false;
@@ -90,6 +102,18 @@
 
       // Track if we have a celebratory intent (forms/CTAs)
       let hasCelebratoryIntent = false;
+      let receivedAnswer = false;
+      let streamTimeout;
+
+      // Safety timeout - if no answer after 30 seconds, show error
+      streamTimeout = setTimeout(() => {
+        if (!receivedAnswer) {
+          console.error('Stream timeout - no answer received');
+          answerDiv.textContent = 'Search timed out. Please try again.';
+          showStatus('', '');
+          resolve();
+        }
+      }, 30000);
 
       // Create fetch request for streaming
       const response = fetch(`${API_BASE_URL}/search/stream`, {
@@ -108,6 +132,14 @@
         function processStream() {
           reader.read().then(({ done, value }) => {
             if (done) {
+              clearTimeout(streamTimeout);
+
+              // SAFETY CHECK: If stream completed but no answer was ever received
+              if (!receivedAnswer && answerDiv.textContent.trim().length === 0) {
+                console.error('Stream completed but no answer received');
+                answerDiv.textContent = 'No results found. Please try a different search.';
+              }
+
               resolve();
               return;
             }
@@ -125,6 +157,12 @@
               if (eventMatch && dataMatch) {
                 const event = eventMatch[1];
                 const data = JSON.parse(dataMatch[1]);
+
+                // Track if we received an answer
+                if (event === 'answer_chunk') {
+                  receivedAnswer = true;
+                }
+
                 handleStreamEvent(event, data, {
                   intentContainer,
                   answerContainer,
@@ -142,7 +180,17 @@
         }
 
         processStream();
-      }).catch(reject);
+      }).catch(err => {
+        clearTimeout(streamTimeout);
+        console.error('Stream error:', err);
+
+        // ALWAYS show an error message - NEVER blank
+        if (!receivedAnswer) {
+          answerDiv.textContent = 'Search failed. Please try again.';
+        }
+
+        reject(err);
+      });
     });
   }
 

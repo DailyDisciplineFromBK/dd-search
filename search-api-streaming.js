@@ -237,6 +237,8 @@ app.post('/search/stream', async (req, res) => {
     const answerPrompt = buildAnswerPrompt(query, posts, intent, restrictions, knowledgeFact);
 
     let fullAnswer = '';
+    let answerSent = false;
+
     try {
       // Stream answer from Claude
       const answerStream = await anthropic.messages.stream({
@@ -250,6 +252,7 @@ app.post('/search/stream', async (req, res) => {
           const text = chunk.delta.text;
           fullAnswer += text;
           sendEvent('answer_chunk', { text });
+          answerSent = true;
         }
       }
     } catch (anthropicError) {
@@ -273,10 +276,20 @@ app.post('/search/stream', async (req, res) => {
       if (isContentPolicy) {
         fullAnswer = 'Your search appears to violate our use-policy. Please rephrase your question and try again.';
         sendEvent('answer_chunk', { text: fullAnswer });
+        answerSent = true;
       } else {
         // Re-throw if it's not a content policy issue
         throw anthropicError;
       }
+    }
+
+    // SAFETY CHECK: If no answer was sent at all, send a fallback
+    if (!answerSent || fullAnswer.trim().length === 0) {
+      console.error('⚠️ No answer generated! Sending fallback message.');
+      const fallbackMessage = "I couldn't generate a specific answer for that query. Try rephrasing your question or search for something related to discipline, habits, or mindset.";
+      fullAnswer = fallbackMessage;
+      sendEvent('answer_chunk', { text: fallbackMessage });
+      answerSent = true;
     }
 
     sendEvent('answer_complete', { answer: fullAnswer });
@@ -334,6 +347,7 @@ JSON only:
     console.error('Error type:', err.type);
     console.error('Error status:', err.status);
     console.error('Error name:', err.name);
+    console.error('Error stack:', err.stack);
 
     // Check if this is a content policy violation
     const isContentPolicy = (
@@ -351,11 +365,14 @@ JSON only:
 
     console.log('Is content policy violation?', isContentPolicy);
 
+    // ALWAYS send a user-visible message - NEVER leave blank
     if (isContentPolicy) {
       sendEvent('answer_chunk', { text: 'Your search appears to violate our use-policy. Please rephrase your question and try again.' });
       sendEvent('complete', { searchTime: Date.now() - startTime });
     } else {
-      sendEvent('error', { message: 'Search failed. Please try again.' });
+      // For any other error, send a friendly error message
+      sendEvent('answer_chunk', { text: 'Search failed. Please try again or rephrase your question.' });
+      sendEvent('complete', { searchTime: Date.now() - startTime });
     }
 
     res.end();
