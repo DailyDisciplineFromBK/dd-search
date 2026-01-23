@@ -136,6 +136,11 @@
         showStatus(data.message, 'loading');
         break;
 
+      case 'intent_detected':
+        // Handle special intents (forms, redirects, etc.)
+        handleIntent(data, answerDiv);
+        break;
+
       case 'expanded':
         console.log('Expanded queries:', data.queries);
         break;
@@ -166,6 +171,156 @@
       case 'error':
         showStatus(data.message, 'error');
         break;
+    }
+  }
+
+  // Handle special intents
+  function handleIntent(intent, answerDiv) {
+    console.log('Intent detected:', intent);
+
+    if (intent.action === 'hubspot_form') {
+      // Show inline form
+      renderInlineForm(intent, answerDiv);
+    } else if (intent.action === 'redirect') {
+      // Show redirect message with link
+      answerDiv.innerHTML = `
+        <p>${escapeHtml(intent.response)}</p>
+        <a href="${escapeHtml(intent.url)}" target="_blank" class="intent-link" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 4px;">
+          ${intent.intentType === 'circleJoin' ? 'Join Community' : 'Visit Store'} →
+        </a>
+      `;
+    } else if (intent.action === 'info') {
+      // Just show informational text
+      answerDiv.textContent = intent.response;
+    }
+  }
+
+  // Render inline form for HubSpot submission
+  function renderInlineForm(intent, container) {
+    let formHTML = `
+      <div class="intent-form">
+        <p>${escapeHtml(intent.response)}</p>
+        <form id="inline-form" style="margin-top: 15px;">
+    `;
+
+    // Add form fields based on intent type
+    if (intent.intentType === 'emailSubscription') {
+      formHTML += `
+        <div style="margin-bottom: 10px;">
+          <label for="email-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Email Address:</label>
+          <input type="email" id="email-input" name="email" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="your@email.com">
+        </div>
+      `;
+    } else if (intent.intentType === 'hiring' || intent.intentType === 'contactUs') {
+      formHTML += `
+        <div style="margin-bottom: 10px;">
+          <label for="name-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Name:</label>
+          <input type="text" id="name-input" name="firstname" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="Your name">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="email-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
+          <input type="email" id="email-input" name="email" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="your@email.com">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="message-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
+          <textarea id="message-input" name="message" required rows="4"
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                    placeholder="Tell us about your inquiry..."></textarea>
+        </div>
+      `;
+    }
+
+    formHTML += `
+          <button type="submit" style="padding: 10px 20px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
+            Submit
+          </button>
+          <div id="form-status" style="margin-top: 10px; display: none;"></div>
+        </form>
+      </div>
+    `;
+
+    container.innerHTML = formHTML;
+
+    // Attach form submit handler
+    document.getElementById('inline-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await submitInlineForm(intent, e.target);
+    });
+  }
+
+  // Submit inline form to backend
+  async function submitInlineForm(intent, formElement) {
+    const formStatus = document.getElementById('form-status');
+    const submitButton = formElement.querySelector('button[type="submit"]');
+
+    try {
+      submitButton.disabled = true;
+      formStatus.textContent = 'Submitting...';
+      formStatus.style.display = 'block';
+      formStatus.style.color = '#666';
+
+      // Collect form data
+      const formData = new FormData(formElement);
+      const fields = {};
+      formData.forEach((value, key) => {
+        fields[key] = value;
+      });
+
+      console.log('Submitting form:', intent.formId, fields);
+
+      // Submit to backend
+      const response = await fetch(`${API_BASE_URL}/submit-form`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formId: intent.formId,
+          fields: fields,
+          context: {
+            pageUri: window.location.href,
+            pageName: document.title
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Submission failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      // Show success message
+      formStatus.textContent = 'Success! ✓';
+      formStatus.style.color = '#0a0';
+
+      // Hide form, show success with redirect if applicable
+      setTimeout(() => {
+        if (intent.successUrl) {
+          formElement.innerHTML = `
+            <p style="color: #0a0; font-weight: bold;">✓ Submission successful!</p>
+            <p>Next step: <a href="${escapeHtml(intent.successUrl)}" target="_blank" style="color: #000; text-decoration: underline;">
+              ${intent.intentType === 'emailSubscription' ? 'Whitelist our email' : 'Continue'}
+            </a></p>
+          `;
+        } else {
+          formElement.innerHTML = `
+            <p style="color: #0a0; font-weight: bold;">✓ Thank you! We'll be in touch soon.</p>
+          `;
+        }
+      }, 1000);
+
+    } catch (error) {
+      console.error('Form submission error:', error);
+      formStatus.textContent = 'Submission failed. Please try again.';
+      formStatus.style.color = '#c00';
+      submitButton.disabled = false;
     }
   }
 

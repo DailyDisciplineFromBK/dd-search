@@ -10,6 +10,8 @@ import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
+import { detectIntent, checkRestrictions, checkKnowledgeFacts, buildAnswerPrompt } from './knowledge-base.js';
+import { submitHubSpotForm, submitEmailSubscription, submitContactForm, submitKeynoteInquiry } from './hubspot-forms.js';
 
 dotenv.config();
 
@@ -149,8 +151,34 @@ app.post('/search/stream', async (req, res) => {
 
     console.log(`🔍 Search query: "${query}"`);
 
-    // Step 1: Query expansion
+    // Step 0: Intent detection and knowledge base check
     sendEvent('status', { message: 'Understanding your question...' });
+
+    const intent = detectIntent(query);
+    const restrictions = checkRestrictions(query);
+    const knowledgeFact = checkKnowledgeFacts(query);
+
+    console.log('Intent detected:', intent?.type || 'none');
+    console.log('Restrictions:', restrictions.restricted ? restrictions.term : 'none');
+    console.log('Knowledge fact:', knowledgeFact?.type || 'none');
+
+    // Handle special intent cases (forms, redirects, etc.)
+    if (intent && (intent.action === 'hubspot_form' || intent.action === 'redirect')) {
+      sendEvent('intent_detected', {
+        intentType: intent.type,
+        action: intent.action,
+        formId: intent.formId,
+        url: intent.url,
+        response: intent.response,
+        requiredFields: intent.requiredFields,
+        successUrl: intent.successUrl
+      });
+
+      // Still do a quick search to provide context
+      sendEvent('status', { message: 'Finding relevant content...' });
+    }
+
+    // Step 1: Query expansion
     const expandedQueries = await expandQuery(query);
     sendEvent('expanded', { queries: expandedQueries });
 
@@ -192,15 +220,8 @@ app.post('/search/stream', async (req, res) => {
     // Step 3: Stream BK's answer with Claude streaming
     sendEvent('status', { message: 'BK is responding...' });
 
-    const formattedPosts = posts.slice(0, 10)
-      .map((post) => `"${post.title}"\n${post.content.slice(0, 300)}...`)
-      .join('\n\n');
-
-    const answerPrompt = `You are BK from Daily Discipline. Answer this question directly in 2-3 paragraphs: "${query}"
-
-Posts: ${formattedPosts}
-
-Be direct, actionable, simple. Tell them what to DO. Use short sentences.`;
+    // Build answer prompt with knowledge base enhancements
+    const answerPrompt = buildAnswerPrompt(query, posts, intent, restrictions, knowledgeFact);
 
     // Stream answer from Claude
     const answerStream = await anthropic.messages.stream({
@@ -384,6 +405,44 @@ JSON: {"top_posts": [{"index": 1, "relevance": "why"}]}`;
     res.status(500).json({
       error: 'Search failed',
       message: err.message,
+    });
+  }
+});
+
+/**
+ * POST /submit-form - HubSpot form submission
+ */
+app.post('/submit-form', async (req, res) => {
+  try {
+    const { formId, fields, context } = req.body;
+
+    if (!formId || !fields) {
+      return res.status(400).json({
+        error: 'formId and fields are required'
+      });
+    }
+
+    console.log(`📝 Form submission: ${formId}`, fields);
+
+    const result = await submitHubSpotForm(formId, fields, context);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Form submitted successfully'
+      });
+    } else {
+      res.status(500).json({
+        error: 'Form submission failed',
+        message: result.error
+      });
+    }
+
+  } catch (err) {
+    console.error('❌ Form submission error:', err);
+    res.status(500).json({
+      error: 'Form submission failed',
+      message: err.message
     });
   }
 });
