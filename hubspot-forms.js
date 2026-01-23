@@ -95,7 +95,7 @@ export async function submitContactForm(formData, context = {}) {
  */
 export async function submitKeynoteInquiry(formData, context = {}) {
   return submitHubSpotForm(
-    'da1e8c1d-0f0a-4484-a47c-27078682b8c5',
+    '12h6MHQ8KRISkfCcHhoK4xQ2bqc',
     formData,
     context
   );

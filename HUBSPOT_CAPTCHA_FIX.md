@@ -15,7 +15,7 @@ You need to **disable CAPTCHA** on these forms in HubSpot:
 
 ### Forms That Need CAPTCHA Disabled:
 
-1. **Keynote Inquiry Form** - ID: `da1e8c1d-0f0a-4484-a47c-27078682b8c5`
+1. **Keynote Inquiry Form** - ID: `12h6MHQ8KRISkfCcHhoK4xQ2bqc`
 2. **Contact Us Form** - ID: `1691fa5c-ba0b-4d77-8793-d30955ee9286`
 3. **Email Subscription Form** - ID: `8638e760-519a-4c2f-9580-32573fb5c959` (if you have CAPTCHA on this too)
 
@@ -27,7 +27,7 @@ You need to **disable CAPTCHA** on these forms in HubSpot:
    - Click **Marketing** → **Lead Capture** → **Forms**
 
 2. **Find the Form:**
-   - Search for "Keynote Inquiry" or use form ID `da1e8c1d-0f0a-4484-a47c-27078682b8c5`
+   - Search for "Keynote Inquiry" or use form ID `12h6MHQ8KRISkfCcHhoK4xQ2bqc`
    - Click to edit the form
 
 3. **Navigate to Options:**
@@ -129,7 +129,7 @@ Error: Form has RECAPTCHA enabled
 **After (CAPTCHA disabled):**
 ```
 ✅ HubSpot form submitted successfully
-Form ID: da1e8c1d-0f0a-4484-a47c-27078682b8c5
+Form ID: 12h6MHQ8KRISkfCcHhoK4xQ2bqc
 ```
 
 ## 🆘 Still Having Issues?
@@ -138,7 +138,7 @@ Form ID: da1e8c1d-0f0a-4484-a47c-27078682b8c5
 
 1. **Check the form ID is correct:**
    - In HubSpot, edit the form
-   - Look at the URL: `...forms/da1e8c1d-0f0a-4484-a47c-27078682b8c5`
+   - Look at the URL: `...forms/12h6MHQ8KRISkfCcHhoK4xQ2bqc`
    - Verify it matches our form IDs in the code
 
 2. **Check required fields:**
