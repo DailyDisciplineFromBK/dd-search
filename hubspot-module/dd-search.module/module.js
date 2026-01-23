@@ -257,7 +257,7 @@
                  placeholder="your@email.com">
         </div>
       `;
-    } else if (intent.intentType === 'hiring' || intent.intentType === 'contactUs') {
+    } else if (intent.intentType === 'hiring') {
       formHTML += `
         <div style="margin-bottom: 10px;">
           <label for="name-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Name:</label>
@@ -275,7 +275,35 @@
           <label for="message-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
           <textarea id="message-input" name="message" required rows="4"
                     style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
-                    placeholder="Tell us about your inquiry..."></textarea>
+                    placeholder="Tell us about your event..."></textarea>
+        </div>
+      `;
+    } else if (intent.intentType === 'contactUs') {
+      // Contact Us form might need different field names
+      formHTML += `
+        <div style="margin-bottom: 10px;">
+          <label for="name-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Full Name:</label>
+          <input type="text" id="name-input" name="name" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="Your name">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="email-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
+          <input type="email" id="email-input" name="email" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="your@email.com">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="subject-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Subject:</label>
+          <input type="text" id="subject-input" name="subject" required
+                 style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                 placeholder="What's this about?">
+        </div>
+        <div style="margin-bottom: 10px;">
+          <label for="message-input" style="display: block; margin-bottom: 5px; font-weight: bold;">Message:</label>
+          <textarea id="message-input" name="message" required rows="4"
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                    placeholder="Your message..."></textarea>
         </div>
       `;
     }

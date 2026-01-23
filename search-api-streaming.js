@@ -245,8 +245,22 @@ app.post('/search/stream', async (req, res) => {
     } catch (anthropicError) {
       // Handle Claude content policy violations
       console.error('Claude API error:', anthropicError);
+      console.error('Error type:', anthropicError.type);
+      console.error('Error status:', anthropicError.status);
+      console.error('Error message:', anthropicError.message);
 
-      if (anthropicError.message && anthropicError.message.includes('content_policy')) {
+      // Check for various types of content policy violations
+      const isContentPolicy =
+        (anthropicError.message && (
+          anthropicError.message.toLowerCase().includes('content_policy') ||
+          anthropicError.message.toLowerCase().includes('harmful') ||
+          anthropicError.message.toLowerCase().includes('safety') ||
+          anthropicError.message.toLowerCase().includes('policy')
+        )) ||
+        anthropicError.type === 'invalid_request_error' ||
+        anthropicError.status === 400;
+
+      if (isContentPolicy) {
         fullAnswer = 'Your search appears to violate our use-policy. Please rephrase your question and try again.';
         sendEvent('answer_chunk', { text: fullAnswer });
       } else {
@@ -307,14 +321,25 @@ JSON only:
 
   } catch (err) {
     console.error('❌ Search error:', err);
+    console.error('Error type:', err.type);
+    console.error('Error status:', err.status);
+    console.error('Error name:', err.name);
 
     // Check if this is a content policy violation
-    const isContentPolicy = err.message && (
-      err.message.includes('content_policy') ||
-      err.message.includes('harmful') ||
-      err.message.includes('safety') ||
-      err.type === 'invalid_request_error'
+    const isContentPolicy = (
+      (err.message && (
+        err.message.toLowerCase().includes('content_policy') ||
+        err.message.toLowerCase().includes('harmful') ||
+        err.message.toLowerCase().includes('safety') ||
+        err.message.toLowerCase().includes('policy') ||
+        err.message.toLowerCase().includes('inappropriate')
+      )) ||
+      err.type === 'invalid_request_error' ||
+      err.status === 400 ||
+      err.name === 'BadRequestError'
     );
+
+    console.log('Is content policy violation?', isContentPolicy);
 
     if (isContentPolicy) {
       sendEvent('answer_chunk', { text: 'Your search appears to violate our use-policy. Please rephrase your question and try again.' });

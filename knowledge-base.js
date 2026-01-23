@@ -61,14 +61,17 @@ export const KNOWLEDGE_BASE = {
 
     contactUs: {
       patterns: [
-        /contact/i,
+        /^contact us$/i,
+        /^contact$/i,
         /get in touch/i,
         /reach out/i,
-        /question about/i
+        /send.*message/i,
+        /ask.*question/i
       ],
       action: 'hubspot_form',
       formId: '1691fa5c-ba0b-4d77-8793-d30955ee9286', // Contact Us
-      response: 'I can help you get in touch. What would you like to contact us about?'
+      response: 'I can help you get in touch. What would you like to contact us about?',
+      celebratory: true
     },
 
     products: {
