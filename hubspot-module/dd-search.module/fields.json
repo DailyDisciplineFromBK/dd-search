@@ -145,8 +145,8 @@
         "type": "group",
         "occurrence": {
           "min": 0,
-          "max": 8,
-          "default": 4
+          "max": 30,
+          "default": 30
         },
         "children": [
           {
@@ -163,7 +163,33 @@
           {"prompt_text": "How do I create my own energy?"},
           {"prompt_text": "What does Daily Discipline say about confidence?"},
           {"prompt_text": "How do I stay consistent when motivation fades?"},
-          {"prompt_text": "What's the difference between discipline and motivation?"}
+          {"prompt_text": "What's the difference between discipline and motivation?"},
+          {"prompt_text": "How do I overcome procrastination?"},
+          {"prompt_text": "What is E+R=O and how do I use it?"},
+          {"prompt_text": "How do I build better habits?"},
+          {"prompt_text": "What does BK say about leadership?"},
+          {"prompt_text": "How do I handle failure and setbacks?"},
+          {"prompt_text": "What is the discipline mindset?"},
+          {"prompt_text": "How do I stay focused on my goals?"},
+          {"prompt_text": "What does Daily Discipline teach about accountability?"},
+          {"prompt_text": "How do I deal with distractions?"},
+          {"prompt_text": "What is the difference between effort and results?"},
+          {"prompt_text": "How do I build mental toughness?"},
+          {"prompt_text": "What does BK say about taking ownership?"},
+          {"prompt_text": "How do I create a morning routine?"},
+          {"prompt_text": "What is the role of consistency in success?"},
+          {"prompt_text": "How do I stop making excuses?"},
+          {"prompt_text": "What does Daily Discipline say about fear?"},
+          {"prompt_text": "How do I make better decisions?"},
+          {"prompt_text": "What is the importance of daily practice?"},
+          {"prompt_text": "How do I develop self-discipline?"},
+          {"prompt_text": "What does BK teach about character?"},
+          {"prompt_text": "How do I overcome negative thinking?"},
+          {"prompt_text": "What is the power of response?"},
+          {"prompt_text": "How do I build confidence through action?"},
+          {"prompt_text": "What does Daily Discipline say about trust?"},
+          {"prompt_text": "How do I handle pressure and stress?"},
+          {"prompt_text": "What is the difference between activity and productivity?"}
         ]
       }
     ]
