@@ -183,9 +183,14 @@ We don't have information on price or preorder availability yet.`
         /what.*focus3/i,
         /tell.*focus 3/i,
         /about focus 3/i,
-        /focus 3.*brian/i
+        /focus 3.*brian/i,
+        /focus 3.*suing/i,
+        /focus3.*suing/i,
+        /lawsuit.*focus 3/i,
+        /sue.*focus 3/i,
+        /legal.*focus 3/i
       ],
-      info: `I am no longer affiliated with Focus 3, and have not been since my departure in 2019. Focus 3 was a leadership development company where I served as CEO. My current work is through Daily Discipline, where I help people build discipline through daily practice.`,
+      info: `I am no longer affiliated with Focus 3, and have not been since my departure in 2019. Focus 3 was a leadership development company where I served as CEO. My current work is through Daily Discipline, where I help people build discipline through daily practice. I don't discuss legal or business matters publicly.`,
       linkToDDEntry: true // Link to DD entry about this
     }
   },
@@ -215,9 +220,56 @@ We don't have information on price or preorder availability yet.`
 
   // Content policy violations
   contentPolicy: {
-    message: 'Your search appears to violate our use-policy. Please rephrase your question and try again.'
+    message: 'Your search appears to violate our use-policy. Please rephrase your question and try again.',
+
+    // Harmful content patterns - checked BEFORE sending to Claude
+    harmfulPatterns: [
+      /kill.*myself/i,
+      /suicide/i,
+      /self.?harm/i,
+      /hurt.*myself/i,
+      /end.*my.*life/i,
+      /want.*to.*die/i,
+      /how.*to.*die/i,
+      /murder/i,
+      /\bkill\b.*\byou\b/i,
+      /\bkill\b.*\bhim\b/i,
+      /\bkill\b.*\bher\b/i,
+      /bomb/i,
+      /terrorist/i,
+      /illegal.*drug/i,
+      /how.*to.*hack/i,
+      /hack.*into/i,
+      /steal.*password/i,
+      /create.*virus/i,
+      /child.*porn/i,
+      /underage.*sex/i,
+      /rape/i,
+      /molest/i,
+      /extreme.*violence/i,
+      /torture/i
+    ]
   }
 };
+
+/**
+ * Check if query contains harmful content
+ */
+export function checkHarmfulContent(query) {
+  const lowerQuery = query.toLowerCase();
+  const harmfulPatterns = KNOWLEDGE_BASE.contentPolicy.harmfulPatterns;
+
+  for (const pattern of harmfulPatterns) {
+    if (pattern.test(lowerQuery)) {
+      return {
+        isHarmful: true,
+        message: KNOWLEDGE_BASE.contentPolicy.message
+      };
+    }
+  }
+
+  return { isHarmful: false };
+}
 
 /**
  * Detect intent from user query

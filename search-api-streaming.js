@@ -10,7 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
-import { detectIntent, checkRestrictions, checkKnowledgeFacts, buildAnswerPrompt } from './knowledge-base.js';
+import { detectIntent, checkRestrictions, checkKnowledgeFacts, buildAnswerPrompt, checkHarmfulContent } from './knowledge-base.js';
 import { submitHubSpotForm, submitEmailSubscription, submitContactForm, submitKeynoteInquiry } from './hubspot-forms.js';
 
 dotenv.config();
@@ -151,7 +151,17 @@ app.post('/search/stream', async (req, res) => {
 
     console.log(`🔍 Search query: "${query}"`);
 
-    // Step 0: Intent detection and knowledge base check
+    // Step 0.1: Check for harmful content FIRST (before any processing)
+    const harmfulCheck = checkHarmfulContent(query);
+    if (harmfulCheck.isHarmful) {
+      console.log('⚠️ Harmful content detected, blocking query');
+      sendEvent('answer_chunk', { text: harmfulCheck.message });
+      sendEvent('complete', { searchTime: Date.now() - startTime });
+      res.end();
+      return;
+    }
+
+    // Step 0.2: Intent detection and knowledge base check
     sendEvent('status', { message: 'Understanding your question...' });
 
     const intent = detectIntent(query);
