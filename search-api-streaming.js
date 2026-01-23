@@ -35,10 +35,21 @@ app.use(cors({
   origin: [
     'https://www.dailydiscipline.com',
     'https://dailydiscipline.com',
-    'http://localhost:3001'
-  ]
+    'https://app.dailydiscipline.com',
+    'http://localhost:3001',
+    'http://localhost:3000'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+
+// Request logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} ${req.method} ${req.path} from ${req.headers.origin || 'unknown'}`);
+  next();
+});
 
 // In-memory embedding cache
 const embeddingCache = new Map();
@@ -116,6 +127,7 @@ Respond ONLY with valid JSON:
  */
 app.post('/search/stream', async (req, res) => {
   const startTime = Date.now();
+  console.log('🔍 Stream search request received:', req.body);
 
   // Set up SSE headers
   res.setHeader('Content-Type', 'text/event-stream');
@@ -132,10 +144,13 @@ app.post('/search/stream', async (req, res) => {
     const { query } = req.body;
 
     if (!query || typeof query !== 'string') {
+      console.log('❌ Invalid query:', req.body);
       sendEvent('error', { message: 'Query parameter required' });
       res.end();
       return;
     }
+
+    console.log(`🔍 Search query: "${query}"`);
 
     // Step 1: Query expansion
     sendEvent('status', { message: 'Understanding your question...' });
