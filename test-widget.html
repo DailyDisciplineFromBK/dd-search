@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Widget Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        #search-container {
+            margin: 20px 0;
+        }
+        #search-input {
+            width: 70%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #search-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #search-status {
+            margin: 10px 0;
+            color: #666;
+        }
+        #search-results {
+            margin-top: 20px;
+        }
+        .direct-answer {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .answer-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .result-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .error-log {
+            background: #fee;
+            border: 1px solid #c00;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Daily Discipline Search Test</h1>
+
+    <div id="search-container">
+        <input type="text" id="search-input" placeholder="Enter your search query...">
+        <button id="search-button">Search</button>
+    </div>
+
+    <div id="search-status"></div>
+    <div id="error-log"></div>
+    <div id="search-results"></div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'https://dd-search-production.up.railway.app';
+
+        // DOM elements
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const searchStatus = document.getElementById('search-status');
+        const searchResults = document.getElementById('search-results');
+        const errorLog = document.getElementById('error-log');
+
+        // State
+        let isSearching = false;
+
+        // Log function
+        function log(message, isError = false) {
+            const timestamp = new Date().toISOString();
+            const logMessage = `[${timestamp}] ${message}\n`;
+            console.log(logMessage);
+
+            if (isError) {
+                errorLog.textContent += logMessage;
+                errorLog.style.display = 'block';
+            }
+        }
+
+        // Initialize
+        searchButton.addEventListener('click', handleSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+
+        // Handle search with streaming
+        async function handleSearch() {
+            const query = searchInput.value.trim();
+
+            if (!query) {
+                searchStatus.textContent = 'Please enter a search query';
+                return;
+            }
+
+            if (isSearching) {
+                return;
+            }
+
+            try {
+                isSearching = true;
+                searchButton.disabled = true;
+                errorLog.textContent = '';
+                errorLog.style.display = 'none';
+                searchResults.innerHTML = '';
+
+                log(`Starting search for: "${query}"`);
+                searchStatus.textContent = 'Starting search...';
+
+                // Try streaming
+                await searchWithStreaming(query);
+
+            } catch (error) {
+                console.error('Search error:', error);
+                log(`ERROR: ${error.message}\nStack: ${error.stack}`, true);
+                searchStatus.textContent = 'Search failed. Check error log above.';
+            } finally {
+                isSearching = false;
+                searchButton.disabled = false;
+            }
+        }
+
+        // Streaming search
+        async function searchWithStreaming(query) {
+            return new Promise((resolve, reject) => {
+                log('Sending fetch request to /search/stream...');
+
+                searchResults.innerHTML = `
+                    <div class="direct-answer">
+                        <div class="answer-label">FROM BK</div>
+                        <div class="answer-text" id="streaming-answer"></div>
+                    </div>
+                    <div class="results-header">Related Posts</div>
+                    <div class="results-list" id="streaming-posts"></div>
+                `;
+
+                const answerDiv = document.getElementById('streaming-answer');
+                const postsDiv = document.getElementById('streaming-posts');
+
+                fetch(`${API_BASE_URL}/search/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query }),
+                })
+                .then(response => {
+                    log(`Response status: ${response.status} ${response.statusText}`);
+                    log(`Response headers: ${JSON.stringify([...response.headers])}`);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+
+                    function processStream() {
+                        reader.read().then(({ done, value }) => {
+                            if (done) {
+                                log('Stream complete');
+                                resolve();
+                                return;
+                            }
+
+                            buffer += decoder.decode(value, { stream: true });
+                            const lines = buffer.split('\n\n');
+                            buffer = lines.pop();
+
+                            for (const line of lines) {
+                                if (!line.trim()) continue;
+
+                                const eventMatch = line.match(/^event: (.+)$/m);
+                                const dataMatch = line.match(/^data: (.+)$/m);
+
+                                if (eventMatch && dataMatch) {
+                                    const event = eventMatch[1];
+                                    const data = JSON.parse(dataMatch[1]);
+                                    log(`Event: ${event}, Data: ${JSON.stringify(data)}`);
+                                    handleStreamEvent(event, data, answerDiv, postsDiv);
+                                }
+                            }
+
+                            processStream();
+                        }).catch(err => {
+                            log(`Stream read error: ${err.message}`, true);
+                            reject(err);
+                        });
+                    }
+
+                    processStream();
+                })
+                .catch(err => {
+                    log(`Fetch error: ${err.message}`, true);
+                    reject(err);
+                });
+            });
+        }
+
+        // Handle streaming events
+        function handleStreamEvent(event, data, answerDiv, postsDiv) {
+            switch (event) {
+                case 'status':
+                    searchStatus.textContent = data.message;
+                    break;
+
+                case 'answer_chunk':
+                    answerDiv.textContent += data.text;
+                    break;
+
+                case 'results':
+                    displayPosts(data.posts, postsDiv);
+                    break;
+
+                case 'complete':
+                    searchStatus.textContent = `Complete (${data.searchTime}ms)`;
+                    break;
+
+                case 'error':
+                    searchStatus.textContent = 'Error: ' + data.message;
+                    log(`Server error: ${data.message}`, true);
+                    break;
+            }
+        }
+
+        // Display posts
+        function displayPosts(posts, container) {
+            const postsHTML = posts.map((result) => {
+                const date = new Date(result.published_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                return `
+                    <div class="result-card">
+                        <h3>${result.title}</h3>
+                        <div style="color: #666; font-size: 14px;">${date}</div>
+                        <div style="margin: 10px 0; font-style: italic;">${result.relevance}</div>
+                        <div>${result.content}</div>
+                        <a href="${result.url}" target="_blank">Read full post →</a>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = postsHTML;
+        }
+
+        log('Test page loaded. API URL: ' + API_BASE_URL);
+    </script>
+</body>
+</html>

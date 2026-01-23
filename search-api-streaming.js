@@ -30,18 +30,15 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Middleware
+// Middleware - More permissive CORS for debugging
 app.use(cors({
-  origin: [
-    'https://www.dailydiscipline.com',
-    'https://dailydiscipline.com',
-    'https://app.dailydiscipline.com',
-    'http://localhost:3001',
-    'http://localhost:3000'
-  ],
+  origin: true, // Allow all origins for now
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  exposedHeaders: ['Content-Type'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 app.use(express.json());
 
