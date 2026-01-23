@@ -159,19 +159,22 @@
   flex-shrink: 0;
   width: 48px;
   height: 48px;
-  display: flex;
+  min-width: 48px; /* Prevent shrinking */
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  background: var(--dd-accent);
-  color: var(--dd-bg);
-  border: none;
+  background: var(--dd-accent) !important;
+  color: var(--dd-bg) !important;
+  border: none !important;
   border-radius: var(--dd-radius);
   cursor: pointer;
   transition: all 0.2s ease;
+  z-index: 10;
+  position: relative;
 }
 
 #search-button:hover {
-  background: #f5d56d;
+  background: #f5d56d !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(244, 200, 76, 0.4);
 }
@@ -188,7 +191,8 @@
 #search-button svg {
   width: 20px;
   height: 20px;
-  stroke: var(--dd-bg);
+  stroke: var(--dd-bg) !important;
+  fill: none;
 }
 
 /* Search Status */
@@ -241,6 +245,11 @@
 /* Intent Container (Forms, CTAs) */
 .dd-intent-container {
   margin-bottom: 32px;
+  display: none; /* Hidden by default */
+}
+
+.dd-intent-container.has-content {
+  display: block; /* Only show when has content */
 }
 
 /* Style forms inside intent container */
@@ -265,13 +274,16 @@
 .dd-intent-container textarea {
   width: 100%;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px solid var(--dd-border);
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 2px solid var(--dd-border) !important;
   border-radius: var(--dd-radius);
-  color: var(--dd-text);
+  color: var(--dd-text) !important;
   font-size: 16px;
   font-family: inherit;
   transition: all 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .dd-intent-container input:focus,
@@ -327,6 +339,11 @@
 /* Answer Container (BK's Response) */
 .dd-answer-container {
   margin-bottom: 48px;
+  display: none; /* Hidden by default */
+}
+
+.dd-answer-container.has-content {
+  display: block; /* Only show when has content */
 }
 
 .dd-answer-content {
@@ -352,6 +369,11 @@
 /* Posts Container */
 .dd-posts-container {
   margin-top: 48px;
+  display: none; /* Hidden by default */
+}
+
+.dd-posts-container.has-content {
+  display: block; /* Only show when has content */
 }
 
 .dd-posts-content {

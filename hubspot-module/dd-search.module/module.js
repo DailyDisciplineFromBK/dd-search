@@ -237,6 +237,8 @@
       case 'answer_chunk':
         // Append text chunk to answer as it arrives
         answerDiv.textContent += data.text;
+        // Show answer container
+        answerContainer.classList.add('has-content');
         break;
 
       case 'answer_complete':
@@ -269,7 +271,7 @@
     console.log('Intent detected:', intent);
 
     // Show the intent container
-    intentContainer.style.display = 'block';
+    intentContainer.classList.add('has-content');
 
     if (intent.action === 'hubspot_form') {
       // Show inline form in intent container
@@ -540,6 +542,12 @@
     }).join('');
 
     container.innerHTML = postsHTML;
+
+    // Show posts container
+    const postsContainer = document.getElementById('posts-container');
+    if (postsContainer) {
+      postsContainer.classList.add('has-content');
+    }
   }
 
   // Fallback: non-streaming search
@@ -632,6 +640,9 @@
   // Hide results
   function hideResults() {
     searchResults.innerHTML = '';
+    // Remove has-content classes from any existing containers
+    const containers = searchResults.querySelectorAll('.dd-intent-container, .dd-answer-container, .dd-posts-container');
+    containers.forEach(c => c.classList.remove('has-content'));
   }
 
   // Escape HTML to prevent XSS
