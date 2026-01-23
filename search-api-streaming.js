@@ -171,11 +171,14 @@ app.post('/search/stream', async (req, res) => {
         url: intent.url,
         response: intent.response,
         requiredFields: intent.requiredFields,
-        successUrl: intent.successUrl
+        successUrl: intent.successUrl,
+        celebratory: intent.celebratory || false
       });
 
-      // Still do a quick search to provide context
-      sendEvent('status', { message: 'Finding relevant content...' });
+      // Still do a quick search to provide context (but won't show posts if celebratory)
+      if (!intent.celebratory) {
+        sendEvent('status', { message: 'Finding relevant content...' });
+      }
     }
 
     // Step 1: Query expansion

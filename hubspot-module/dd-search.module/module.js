@@ -68,19 +68,28 @@
   // Streaming search using Server-Sent Events
   async function searchWithStreaming(query) {
     return new Promise((resolve, reject) => {
-      // Prepare search results container
+      // Prepare search results container with separate intent and answer sections
       searchResults.innerHTML = `
-        <div class="direct-answer">
+        <div id="intent-container" style="display: none;"></div>
+        <div id="answer-container" class="direct-answer">
           <div class="answer-label">FROM BK</div>
           <div class="answer-text" id="streaming-answer"></div>
         </div>
-        <div class="results-header">Related Posts</div>
-        <div class="results-list" id="streaming-posts"></div>
+        <div id="posts-container">
+          <div class="results-header">Related Posts</div>
+          <div class="results-list" id="streaming-posts"></div>
+        </div>
       `;
       searchResults.classList.add('visible');
 
+      const intentContainer = document.getElementById('intent-container');
+      const answerContainer = document.getElementById('answer-container');
+      const postsContainer = document.getElementById('posts-container');
       const answerDiv = document.getElementById('streaming-answer');
       const postsDiv = document.getElementById('streaming-posts');
+
+      // Track if we have a celebratory intent (forms/CTAs)
+      let hasCelebratoryIntent = false;
 
       // Create fetch request for streaming
       const response = fetch(`${API_BASE_URL}/search/stream`, {
@@ -116,7 +125,15 @@
               if (eventMatch && dataMatch) {
                 const event = eventMatch[1];
                 const data = JSON.parse(dataMatch[1]);
-                handleStreamEvent(event, data, answerDiv, postsDiv);
+                handleStreamEvent(event, data, {
+                  intentContainer,
+                  answerContainer,
+                  postsContainer,
+                  answerDiv,
+                  postsDiv,
+                  hasCelebratoryIntent: () => hasCelebratoryIntent,
+                  setHasCelebratoryIntent: (val) => { hasCelebratoryIntent = val; }
+                });
               }
             }
 
@@ -130,7 +147,9 @@
   }
 
   // Handle streaming events
-  function handleStreamEvent(event, data, answerDiv, postsDiv) {
+  function handleStreamEvent(event, data, containers) {
+    const { intentContainer, answerContainer, postsContainer, answerDiv, postsDiv, hasCelebratoryIntent, setHasCelebratoryIntent } = containers;
+
     switch (event) {
       case 'status':
         showStatus(data.message, 'loading');
@@ -138,7 +157,13 @@
 
       case 'intent_detected':
         // Handle special intents (forms, redirects, etc.)
-        handleIntent(data, answerDiv);
+        handleIntent(data, intentContainer, answerDiv);
+
+        // If this is a celebratory intent (form/CTA), hide posts and modify answer container
+        if (data.celebratory) {
+          setHasCelebratoryIntent(true);
+          postsContainer.style.display = 'none';
+        }
         break;
 
       case 'expanded':
@@ -146,7 +171,10 @@
         break;
 
       case 'posts_found':
-        showStatus(`Found ${data.count} relevant posts...`, 'loading');
+        // Only show this status if not celebratory
+        if (!hasCelebratoryIntent()) {
+          showStatus(`Found ${data.count} relevant posts...`, 'loading');
+        }
         break;
 
       case 'answer_chunk':
@@ -155,12 +183,17 @@
         break;
 
       case 'answer_complete':
-        showStatus('Finding the best posts...', 'loading');
+        // Only show this status if not celebratory
+        if (!hasCelebratoryIntent()) {
+          showStatus('Finding the best posts...', 'loading');
+        }
         break;
 
       case 'results':
-        // Display posts
-        displayPosts(data.posts, postsDiv);
+        // Only display posts if not celebratory
+        if (!hasCelebratoryIntent()) {
+          displayPosts(data.posts, postsDiv);
+        }
         break;
 
       case 'complete':
@@ -175,22 +208,34 @@
   }
 
   // Handle special intents
-  function handleIntent(intent, answerDiv) {
+  function handleIntent(intent, intentContainer, answerDiv) {
     console.log('Intent detected:', intent);
 
+    // Show the intent container
+    intentContainer.style.display = 'block';
+
     if (intent.action === 'hubspot_form') {
-      // Show inline form
-      renderInlineForm(intent, answerDiv);
+      // Show inline form in intent container
+      renderInlineForm(intent, intentContainer);
+
+      // Show celebratory message in answer div if provided
+      if (intent.response) {
+        answerDiv.textContent = intent.response;
+      }
     } else if (intent.action === 'redirect') {
-      // Show redirect message with link
-      answerDiv.innerHTML = `
-        <p>${escapeHtml(intent.response)}</p>
-        <a href="${escapeHtml(intent.url)}" target="_blank" class="intent-link" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; border-radius: 4px;">
-          ${intent.intentType === 'circleJoin' ? 'Join Community' : 'Visit Store'} →
-        </a>
+      // Show redirect link in intent container
+      intentContainer.innerHTML = `
+        <div style="margin-bottom: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+          <a href="${escapeHtml(intent.url)}" target="_blank" class="intent-link" style="display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            ${intent.intentType === 'circleJoin' ? 'Join Community' : 'Visit Store'} →
+          </a>
+        </div>
       `;
+
+      // Show message in answer div
+      answerDiv.textContent = intent.response;
     } else if (intent.action === 'info') {
-      // Just show informational text
+      // Just show informational text in answer div
       answerDiv.textContent = intent.response;
     }
   }
@@ -198,8 +243,7 @@
   // Render inline form for HubSpot submission
   function renderInlineForm(intent, container) {
     let formHTML = `
-      <div class="intent-form">
-        <p>${escapeHtml(intent.response)}</p>
+      <div class="intent-form" style="margin-bottom: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
         <form id="inline-form" style="margin-top: 15px;">
     `;
 

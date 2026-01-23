@@ -14,13 +14,15 @@ export const KNOWLEDGE_BASE = {
         /daily discipline email/i,
         /newsletter/i,
         /receive.*email/i,
-        /how do i subscribe/i
+        /how do i subscribe/i,
+        /can i subscribe/i
       ],
       action: 'hubspot_form',
       formId: '8638e760-519a-4c2f-9580-32573fb5c959',
       requiredFields: ['email'],
       successUrl: 'https://www.dailydiscipline.com/whitelisting',
-      response: 'I can help you subscribe to the Daily Discipline email. Please provide your email address and I\'ll get you signed up.'
+      response: "Subscribing is simple, submit this form, and you're in! Here's what to expect: Every morning, you'll get a Daily Discipline message that's direct, actionable, and built to help you do what you know you need to do. No fluff, just discipline.",
+      celebratory: true
     },
 
     circleJoin: {
@@ -39,16 +41,22 @@ export const KNOWLEDGE_BASE = {
     hiring: {
       patterns: [
         /hire.*bk/i,
+        /hire.*me/i,
+        /hire.*you/i,
         /book.*speaker/i,
         /keynote/i,
         /speaking engagement/i,
         /work with.*brian/i,
         /digvns/i,
-        /hire.*brian.*kight/i
+        /hire.*brian.*kight/i,
+        /speak at.*event/i,
+        /speaker.*event/i,
+        /book.*event/i
       ],
       action: 'hubspot_form',
       formId: 'da1e8c1d-0f0a-4484-a47c-27078682b8c5', // Keynote Inquiry
-      response: 'I can help you with an inquiry about hiring BK for a speaking engagement. What would you like to know?'
+      response: "I'm so excited to learn more about your event! I know how important the outcomes of your event are to you and I know I can bring the tangible systems and energy to make it a huge success. Submit this form to get started.",
+      celebratory: true
     },
 
     contactUs: {
@@ -111,19 +119,28 @@ We don't have information on price or preorder availability yet.`
     focus3Podcast: {
       patterns: [
         /focus 3 podcast/i,
+        /focus3 podcast/i,
         /old podcast/i,
-        /tim and brian podcast/i
+        /tim and brian podcast/i,
+        /podcast with tim/i
       ],
-      info: `Old episodes of the Focus 3 Podcast with Tim and Brian Kight are no longer available. This was not our decision. You can find current content on the Daily Discipline Podcast.`
+      info: `The old Focus 3 Podcast episodes with my dad, Tim Kight, and me are no longer available. This was not our decision. You can find current content on the Daily Discipline Podcast.`
     },
 
     focus3Affiliation: {
       patterns: [
         /work for focus 3/i,
+        /work for focus3/i,
         /still at focus 3/i,
-        /focus 3 affiliation/i
+        /focus 3 affiliation/i,
+        /focus3 affiliation/i,
+        /what.*focus 3/i,
+        /what.*focus3/i,
+        /tell.*focus 3/i,
+        /about focus 3/i,
+        /focus 3.*brian/i
       ],
-      info: `I am no longer affiliated with Focus 3, and have not been since my departure in 2019.`,
+      info: `I am no longer affiliated with Focus 3, and have not been since my departure in 2019. Focus 3 was a leadership development company where I served as CEO. My current work is through Daily Discipline, where I help people build discipline through daily practice.`,
       linkToDDEntry: true // Link to DD entry about this
     }
   },
