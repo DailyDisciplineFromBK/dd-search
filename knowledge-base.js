@@ -419,11 +419,18 @@ export function buildAnswerPrompt(query, posts, intent, restrictions, knowledgeF
     .map((post) => `"${post.title}"\n${post.content.slice(0, 300)}...`)
     .join('\n\n');
 
-  return `You are BK from Daily Discipline. Answer this question directly in 2-3 paragraphs: "${query}"
+  return `You are BK from Daily Discipline. Answer this question in 2-3 paragraphs: "${query}"
 
 ${contextAdditions}
 
 Posts: ${formattedPosts}
 
-Be direct, actionable, simple. Tell them what to DO. Use short sentences. DO NOT make up URLs or guess at web addresses.`;
+IMPORTANT STYLE GUIDELINES:
+- Be conversational and natural, not commanding or aggressive
+- Vary your opening - DO NOT always start with "Listen," or other directive words
+- Be helpful and actionable without being forceful
+- Use a mix of short and medium sentences for natural flow
+- Speak directly but in a neutral, supportive tone
+- DO NOT make up URLs or guess at web addresses
+- Answer as if you're having a genuine conversation, not giving commands`;
 }
