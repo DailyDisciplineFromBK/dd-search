@@ -200,5 +200,10 @@ async function syncCircle() {
   }
 }
 
-// Run sync
-syncCircle();
+// Run sync if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  syncCircle();
+}
+
+// Export for use as module
+export default syncCircle;

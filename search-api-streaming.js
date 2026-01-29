@@ -543,6 +543,39 @@ app.get('/health', (req, res) => {
 });
 
 /**
+ * POST /sync - Trigger Circle.so sync
+ */
+app.post('/sync', async (req, res) => {
+  console.log('🔄 Sync triggered via API');
+
+  try {
+    // Dynamically import and run sync
+    const module = await import('./sync-circle.js');
+    const syncFunction = module.default || module.syncCircle;
+
+    // Start sync in background
+    if (syncFunction) {
+      syncFunction().catch(err => {
+        console.error('❌ Background sync failed:', err);
+      });
+
+      res.json({
+        status: 'ok',
+        message: 'Sync started in background. Check Railway logs for progress.',
+      });
+    } else {
+      throw new Error('Sync function not found in sync-circle.js');
+    }
+  } catch (error) {
+    console.error('❌ Error starting sync:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+});
+
+/**
  * GET /
  */
 app.get('/', (req, res) => {
@@ -552,13 +585,15 @@ app.get('/', (req, res) => {
     endpoints: {
       'POST /search/stream': 'Streaming search with real-time updates (SSE)',
       'POST /search': 'Standard search (optimized, non-streaming)',
-      'GET /health': 'Health check',
+      'POST /sync': 'Trigger Circle.so sync to update database',
+      'GET /': 'Health check',
     },
     features: [
       'Real-time answer streaming',
       'Parallel embeddings + search',
       'In-memory embedding cache',
       'Optimized performance',
+      'Manual sync trigger',
     ]
   });
 });
