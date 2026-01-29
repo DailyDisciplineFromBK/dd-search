@@ -10,7 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
-import { detectIntent, checkRestrictions, checkKnowledgeFacts, buildAnswerPrompt, checkHarmfulContent } from './knowledge-base.js';
+import { detectIntent, checkRestrictions, checkKnowledgeFacts, buildAnswerPrompt, checkHarmfulContent, detectDateQuery } from './knowledge-base.js';
 import { submitHubSpotForm, submitEmailSubscription, submitContactForm, submitKeynoteInquiry } from './hubspot-forms.js';
 
 dotenv.config();
@@ -96,6 +96,57 @@ async function searchPosts(queryEmbedding, matchCount = 10, threshold = 0.35) {
 }
 
 /**
+ * Get posts by date (newest, oldest, or specific date)
+ */
+async function getPostsByDate(dateQuery) {
+  let query = supabase.from('posts').select('*');
+
+  if (dateQuery.type === 'newest') {
+    // Get most recent posts
+    query = query.order('published_at', { ascending: false }).limit(10);
+  } else if (dateQuery.type === 'oldest') {
+    // Get oldest posts
+    query = query.order('published_at', { ascending: true }).limit(10);
+  } else if (dateQuery.type === 'specific_date' && dateQuery.date) {
+    // Get posts from specific date or nearby weekdays
+    const targetDate = dateQuery.date.toISOString().split('T')[0];
+
+    if (dateQuery.isWeekend) {
+      // Find closest weekdays (Friday before or Monday after)
+      const friday = new Date(dateQuery.date);
+      const monday = new Date(dateQuery.date);
+
+      // Go back to Friday
+      while (friday.getDay() !== 5) {
+        friday.setDate(friday.getDate() - 1);
+      }
+
+      // Go forward to Monday
+      while (monday.getDay() !== 1) {
+        monday.setDate(monday.getDate() + 1);
+      }
+
+      const fridayStr = friday.toISOString().split('T')[0];
+      const mondayStr = monday.toISOString().split('T')[0];
+
+      query = query.in('published_at', [fridayStr, mondayStr]).order('published_at', { ascending: false });
+    } else {
+      // Get exact date
+      query = query.eq('published_at', targetDate);
+    }
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Date query error:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
  * Expand query - reduced to 3 queries
  */
 async function expandQuery(query) {
@@ -156,6 +207,45 @@ app.post('/search/stream', async (req, res) => {
     if (harmfulCheck.isHarmful) {
       console.log('⚠️ Harmful content detected, blocking query');
       sendEvent('answer_chunk', { text: harmfulCheck.message });
+      sendEvent('complete', { searchTime: Date.now() - startTime });
+      res.end();
+      return;
+    }
+
+    // Step 0.15: Check for date-based queries (newest, oldest, specific dates)
+    const dateQuery = detectDateQuery(query);
+    if (dateQuery) {
+      console.log('📅 Date query detected:', dateQuery.type);
+      sendEvent('status', { message: 'Finding posts by date...' });
+
+      // Get posts by date instead of semantic search
+      const posts = await getPostsByDate(dateQuery);
+
+      if (posts.length === 0) {
+        sendEvent('answer_chunk', { text: `I couldn't find any Daily Discipline posts for that date. Daily Discipline started on January 1, 2018, and posts are published on weekdays only.` });
+        sendEvent('complete', { searchTime: Date.now() - startTime });
+        res.end();
+        return;
+      }
+
+      sendEvent('posts_found', { count: posts.length });
+
+      // Send the date query message
+      sendEvent('answer_chunk', { text: dateQuery.message });
+      sendEvent('answer_complete', {});
+
+      // Send the posts
+      const formattedPosts = posts.map(post => ({
+        title: post.title,
+        content: post.content.substring(0, 300),
+        url: post.url,
+        published_at: post.published_at,
+        relevance: dateQuery.type === 'specific_date'
+          ? `Published on ${new Date(post.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+          : `Published on ${new Date(post.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`,
+      }));
+
+      sendEvent('results', { posts: formattedPosts });
       sendEvent('complete', { searchTime: Date.now() - startTime });
       res.end();
       return;

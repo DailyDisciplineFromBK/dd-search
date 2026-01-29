@@ -4,6 +4,11 @@
  */
 
 export const KNOWLEDGE_BASE = {
+  // Daily Discipline origin story
+  origin: {
+    startDate: '2018-01-01',
+    story: `Daily Discipline started on January 1, 2018. BK launched it as a commitment to write daily messages focused on discipline, personal growth, and leadership. The practice has continued every weekday since then, building a library of over 2,100 entries that explore what it means to build discipline in daily life. Each entry is meant to be direct, actionable, and focused on helping people do what they know they need to do.`
+  },
   // Intent detection patterns
   intents: {
     emailSubscription: {
@@ -385,6 +390,91 @@ export function checkKnowledgeFacts(query) {
   for (const pattern of KNOWLEDGE_BASE.facts.focus3Affiliation.patterns) {
     if (pattern.test(lowerQuery)) {
       return { type: 'focus3Affiliation', info: KNOWLEDGE_BASE.facts.focus3Affiliation.info };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Detect date-based queries (newest, oldest, specific dates)
+ */
+export function detectDateQuery(query) {
+  const lowerQuery = query.toLowerCase();
+
+  // Check for "newest" or "latest" or "recent"
+  if (/\b(newest|latest|recent|most recent|new)\s+(post|entry|entries|dd|daily discipline)/i.test(lowerQuery) ||
+      /show\s+me\s+(the\s+)?(newest|latest|recent|new)/i.test(lowerQuery)) {
+    return {
+      type: 'newest',
+      message: 'Here are the most recent Daily Discipline posts:'
+    };
+  }
+
+  // Check for "oldest" or "first"
+  if (/\b(oldest|first|original|earliest)\s+(post|entry|dd)/i.test(lowerQuery) ||
+      /show\s+me\s+(the\s+)?(oldest|first)/i.test(lowerQuery) ||
+      /when\s+did\s+(daily discipline|dd)\s+start/i.test(lowerQuery)) {
+    return {
+      type: 'oldest',
+      message: KNOWLEDGE_BASE.origin.story
+    };
+  }
+
+  // Check for specific date patterns
+  const datePatterns = [
+    // "March 19, 2021" or "March 19 2021"
+    /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2}),?\s+(\d{4})\b/i,
+    // "3/19/2021" or "3-19-2021"
+    /\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/,
+    // "2021-03-19" (ISO format)
+    /\b(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\b/,
+  ];
+
+  for (const pattern of datePatterns) {
+    const match = query.match(pattern);
+    if (match) {
+      let parsedDate;
+
+      if (pattern.source.includes('january|february')) {
+        // Month name format
+        const monthNames = ['january', 'february', 'march', 'april', 'may', 'june',
+                           'july', 'august', 'september', 'october', 'november', 'december'];
+        const month = monthNames.indexOf(match[1].toLowerCase()) + 1;
+        const day = parseInt(match[2]);
+        const year = parseInt(match[3]);
+        parsedDate = new Date(year, month - 1, day);
+      } else if (match[1].length === 4) {
+        // ISO format YYYY-MM-DD
+        parsedDate = new Date(match[1], parseInt(match[2]) - 1, parseInt(match[3]));
+      } else {
+        // M/D/YYYY format
+        parsedDate = new Date(parseInt(match[3]), parseInt(match[1]) - 1, parseInt(match[2]));
+      }
+
+      // Check if valid date
+      if (parsedDate && !isNaN(parsedDate.getTime())) {
+        const dayOfWeek = parsedDate.getDay(); // 0 = Sunday, 6 = Saturday
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+        // Check if before Daily Discipline started
+        const ddStart = new Date(KNOWLEDGE_BASE.origin.startDate);
+        if (parsedDate < ddStart) {
+          return {
+            type: 'oldest',
+            message: KNOWLEDGE_BASE.origin.story
+          };
+        }
+
+        return {
+          type: 'specific_date',
+          date: parsedDate,
+          isWeekend,
+          message: isWeekend
+            ? `Daily Discipline posts are only written on weekdays. Here are posts from the closest weekdays to ${parsedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}:`
+            : `Here's the Daily Discipline from ${parsedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}:`
+        };
+      }
     }
   }
 
