@@ -10,6 +10,7 @@
     "dev": "node search-api-streaming.js",
     "import": "node import-archive.js",
     "sync": "node sync-circle.js",
+    "cron": "node cron-sync.js",
     "widget": "node widget/test-server.js"
   },
   "dependencies": {
